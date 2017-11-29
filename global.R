@@ -78,6 +78,7 @@ lflow_monthly.df$RDate <- as.POSIXct(lflow_monthly.df$RDate)
 
 
 # Weather Data ==============================================================
+wd <- getwd()
 
 source(file =paste0(wd, "/Code/R_Weather.R"))
 rm(weather_daily.df, weather_monthly.df)

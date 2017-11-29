@@ -20,45 +20,45 @@
 
 ### set working directory
 #wd <- getwd()
-source_dir <-"E:/UFZ/06 LRB_Data/01 R_Dir"
+wd <- "E:/UFZ/06 LRB_Data/01 R_Dir/"
 
 
 #=== 1. Import Raw data and tip volumes from 2017 on =====
 
 # import raw data ==============
 
-RAW.df=ldply(list.files(path=paste0(source_dir,"/Data_In/LRB_FLOW_RAW/"),pattern="csv",full.names=TRUE),function(filename) {
+RAW.df=ldply(list.files(path=paste0(wd,"/Data_In/LRB_FLOW_RAW_2017/"),pattern="csv",full.names=TRUE),function(filename) {
   dum=read.table(filename, sep=";", dec=",", header=TRUE)
   dum$filename=filename
   return(dum)
 })
 
-#RAW.df <- read.csv(paste0(source_dir,"/Data_In/Flow_Hourly_2017_01.csv"), header=TRUE, sep=";", dec=",")
+#RAW.df <- read.csv(paste0(wd,"/Data_In/Flow_Hourly_2017_01.csv"), header=TRUE, sep=";", dec=",")
 RAW.df$DateTime <- paste(RAW.df$Date, RAW.df$Time, sep = " ")
 
 # convert time format
 RAW.df$RDate_Xlt <-  strptime(as.character(RAW.df$DateTime), format="%d. %m. %Y %R")
 RAW.df$RDate <- as.POSIXct(RAW.df$RDate_Xlt)
-RAW.df$Date <- as.character(RAW.df$RDate, format = "%m.%y")
+RAW.df$Date <- as.character(RAW.df$RDate, format = "%m.%Y")
 
 
+# remove all columns of outflow volume and tipping volume
+RAW.df <- select(RAW.df, -contains("_Out_.V."), -contains("_Out_.L."))
 
-
+# rename inflow columns
+colnames(RAW.df) <- gsub("_.L.", "", colnames(RAW.df))
+colnames(RAW.df) <- gsub("W.A.", "WA", colnames(RAW.df))
+colnames(RAW.df) <- gsub("W.B.", "WB", colnames(RAW.df))
 
 # import tip volumes from ownCloud ============
 
 library(readxl)
 TIP.df <- read_excel("E:/ownCloud/LRB - O&M/log book_o & m.xls", 
-                     sheet = "OutflowMeasureCalibration_2017", na = "empty")
+                     sheet = "OutflowMeasureCalibration_All", na = "empty")
 
 # create a character date vector 
 #colnames(TIP.df)[1] <- "RDate"
-TIP.df$Date <- as.character(TIP.df$Date, format = "%m.%y")
-
-
-
-
-
+TIP.df$Date <- as.character(TIP.df$Date, format = "%m.%Y")
 
 #=== 2. Update Flow
 
@@ -70,69 +70,54 @@ RAW.df <- merge(RAW.df, TIP.df, by="Date", all.x=TRUE)
 
 # update outlfow volume =============================
 # OUTFLOW_new = NUMBER_OF_TIPS * updated TIP_VOLUME
-RAW.df$VA_IN <- RAW.df$VA_In_.L.
+
 RAW.df$VA_OUT <- RAW.df$VA_Out_.n. * RAW.df$VA
 
-RAW.df$VAp_IN <- RAW.df$VAp_In_.L.
 RAW.df$VAp_OUT <- RAW.df$VAp_Out_.n. * RAW.df$VAp
+.
+RAW.df$VM1_OUT <- RAW.df$VM1_Out_.n. * RAW.df$VM1
 
-RAW.df$VM1_IN <- RAW.df$VM1_In_.L.
-RAW.df$VM1_OUT <- RAW.df$VM1_Out_.n. * RAW.df$VAp
+RAW.df$VM2_OUT <- RAW.df$VM2_Out_.n. * RAW.df$VM2
 
-RAW.df$VM2_IN <- RAW.df$VM2_In_.L.
-RAW.df$VM2_OUT <- RAW.df$VM2_Out_.n. * RAW.df$VAp
+RAW.df$VS1_OUT <- RAW.df$VS1_Out_.n. * RAW.df$VS1
 
-RAW.df$VS1_IN <- RAW.df$VS1_In_.L.
-RAW.df$VS1_OUT <- RAW.df$VS1_Out_.n. * RAW.df$VAp
+RAW.df$VS1p_OUT <- RAW.df$VS1p_Out_.n. * RAW.df$VS1p
 
-RAW.df$VS1p_IN <- RAW.df$VS1p_In_.L.
-RAW.df$VS1p_OUT <- RAW.df$VS1p_Out_.n. * RAW.df$VAp
+RAW.df$WB_OUT <- RAW.df$WB_Out_.n. * RAW.df$WB
 
-RAW.df$W.B._IN <- RAW.df$W.B._In_.L.
-RAW.df$W.B._OUT <- RAW.df$W.B._Out_.n. * RAW.df$VAp
+RAW.df$WA_OUT <- RAW.df$WA_Out_.n. * RAW.df$WA
 
-RAW.df$W.A._IN <- RAW.df$W.A._In_.L.
-RAW.df$W.A._OUT <- RAW.df$W.A._Out_.n. * RAW.df$VAp
+RAW.df$HAp_OUT <- RAW.df$HAp_Out_.n. * RAW.df$HAp
 
-RAW.df$HAp_IN <- RAW.df$HAp_In_.L.
-RAW.df$HAp_OUT <- RAW.df$HAp_Out_.n. * RAW.df$VAp
+RAW.df$HA_OUT <- RAW.df$HA_Out_.n. * RAW.df$HA
 
-RAW.df$HA_IN <- RAW.df$HA_In_.L.
-RAW.df$HA_OUT <- RAW.df$HA_Out_.n. * RAW.df$VAp
+RAW.df$HMc_OUT <- RAW.df$HMc_Out_.n. * RAW.df$HMc
 
-RAW.df$HMc_IN <- RAW.df$HMc_In_.L.
-RAW.df$HMc_OUT <- RAW.df$HMc_Out_.n. * RAW.df$VAp
+RAW.df$HM_OUT <- RAW.df$HM_Out_.n. * RAW.df$HM
 
-RAW.df$HM_IN <- RAW.df$HM_In_.L.
-RAW.df$HM_OUT <- RAW.df$HM_Out_.n. * RAW.df$VAp
+RAW.df$H50p_OUT <- RAW.df$H50p_Out_.n. * RAW.df$H50p
 
-RAW.df$H50p_IN <- RAW.df$H50p_In_.L.
-RAW.df$H50p_OUT <- RAW.df$H50p_Out_.n. * RAW.df$VAp
+RAW.df$H50_OUT <- RAW.df$H50_Out_.n. * RAW.df$H50
 
-RAW.df$H50_IN <- RAW.df$H50_In_.L.
-RAW.df$H50_OUT <- RAW.df$H50_Out_.n. * RAW.df$VAp
-
-RAW.df$R_IN <- RAW.df$R_In_.L.
-RAW.df$R_OUT <- RAW.df$R_Out_.n. * RAW.df$VAp
+RAW.df$R_OUT <- RAW.df$R_Out_.n. * RAW.df$R
 #====================================================
 
 
+# remove unnecessary columns
+RAW.df <- select(RAW.df, -contains("_Out_.n."), -contains("filename"), -contains("RDate_Xlt"))
+
+# select only inflow and outflow and RDate
+RAW.df <- select(RAW.df, contains("RDate"), contains("_In"), contains("OUT"))
+colnames(RAW.df) <- gsub("In", "IN", colnames(RAW.df))
 
 
 #=== 3. Export corrected hourly data =======================
 
-i <- which(colnames(RAW.df)=="RDate")
-j <- which(colnames(RAW.df)=="VA_IN")
-k <- which(colnames(RAW.df)=="R_OUT")
-
-flow_hourly.df <- RAW.df[,c(i, j:k)]
+flow_hourly.df <- RAW.df
 
 # surpress when using sweave
-write.table(flow_hourly.df, file = paste0(source_dir,"/Data_Out/Flow_hourly_corrected.csv"), sep = ";", dec = ".", na=""  ,row.names = FALSE)
+write.table(flow_hourly.df, file = paste0(wd,"/Data_Out/Flow_hourly_corrected.csv"), sep = ";", dec = ".", na=""  ,row.names = FALSE)
 
 rm(RAW.df)
 rm(TIP.df)
-rm(i)
-rm(j)
-rm(k)
 
