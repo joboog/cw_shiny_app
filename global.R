@@ -3,6 +3,12 @@
 # Visualization, Summary stats, downloads
 
 
+# Note:
+# This code imports the input data from a local directory /Data_In/ that has to be
+# present in the working directory.
+# 
+# All the code under wd/Code/ besides Support.R, is not used in this version.
+# It would have ot be used when unprepared raw data from data source files will be used.
 
 
 # preambel =================================================================
@@ -26,7 +32,7 @@ countValues <- function(x){
 }
 
 
-# import data ==============================================================
+# import data from local wd/Data_In/...     ====================================================
 
 # WQ data
 lRaw.dat <- read.csv(file=paste0(wd,"/Data_In/WQ_Data.csv"), header = TRUE, sep = ";", dec = ".")
