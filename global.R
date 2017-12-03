@@ -34,24 +34,32 @@ countValues <- function(x){
 
 # import data from local wd/Data_In/...     ====================================================
 
+# set data dir
+if (dir.exists("Data_In")==TRUE) {
+  data_dir <- "/Data_In/"
+} else {
+    data_dir <- "/Data_Example/"
+  }
+
 # WQ data
-lRaw.dat <- read.csv(file=paste0(wd,"/Data_In/WQ_Data.csv"), header = TRUE, sep = ";", dec = ".")
+lRaw.dat <- read.csv(file=paste0(wd,data_dir, "WQ_Data.csv"), header = TRUE, sep = ";", dec = ".")
 lRaw.dat$DateTime <- as.POSIXct(strptime(lRaw.dat$DateTime, format = "%Y-%m-%d %R"))
 
 # Flow data
-lflow_hourly.df <- read.csv(file=paste0(wd,"/Data_In/lFLOW_Hourly.csv"), header = TRUE, sep = ";", dec = ".")
-lflow_daily.df <- read.csv(file=paste0(wd,"/Data_In/lFLOW_Daily.csv"), header = TRUE, sep = ";", dec = ".")
-lflow_monthly.df <- read.csv(file=paste0(wd,"/Data_In/lFLOW_Monthly.csv"), header = TRUE, sep = ";", dec = ".")
+lflow_hourly.df <- read.csv(file=paste0(wd, data_dir, "lFLOW_Hourly.csv"), header = TRUE, sep = ";", dec = ".")
+lflow_daily.df <- read.csv(file=paste0(wd, data_dir, "lFLOW_Daily.csv"), header = TRUE, sep = ";", dec = ".")
+lflow_monthly.df <- read.csv(file=paste0(wd, data_dir, "lFLOW_Monthly.csv"), header = TRUE, sep = ";", dec = ".")
 # tranform Rdate to POSct
 lflow_hourly.df$RDate <- as.POSIXct(lflow_hourly.df$RDate, format="%Y-%m-%d %R")
 lflow_daily.df$RDate <- as.POSIXct(lflow_daily.df$RDate, format="%Y-%m-%d")
 lflow_monthly.df$RDate <- as.POSIXct(lflow_monthly.df$RDate, format="%Y-%m-%d")
 
 # weather data
-weather_raw.df <- read.csv(file=paste0(wd,"/Data_In/Weather_10min.csv"), header = TRUE, sep = ";", dec = ".")
-lweather_daily.df <- read.csv(file=paste0(wd,"/Data_In/lWeather_Daily.csv"), header = TRUE, sep = ";", dec = ".")
-lweather_monthly.df <- read.csv(file=paste0(wd,"/Data_In/lWeather_Monthly.csv"), header = TRUE, sep = ";", dec = ".")
+weather_raw.df <- read.csv(file=paste0(wd,data_dir, "Weather_10min.csv"), header = TRUE, sep = ";", dec = ".")
+lweather_daily.df <- read.csv(file=paste0(wd, data_dir, "lWeather_Daily.csv"), header = TRUE, sep = ";", dec = ".")
+lweather_monthly.df <- read.csv(file=paste0(wd, data_dir, "lWeather_Monthly.csv"), header = TRUE, sep = ";", dec = ".")
 
 weather_raw.df$RDate_Xlt <- as.POSIXct(weather_raw.df$RDate_Xlt, format="%Y-%m-%d %R")
 lweather_daily.df$Date <- as.POSIXct(lweather_daily.df$Date, format="%Y-%m-%d")
 lweather_monthly.df$Date <- as.POSIXct(lweather_monthly.df$Date, format="%Y-%m-%d")
+
