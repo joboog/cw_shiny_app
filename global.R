@@ -18,7 +18,7 @@ wd <- getwd()
 # support scripts ===
 
 # load source script for summary table ===
-source(file="E:/UFZ/10 Programs/R- Project/R_Work_def/Support.R")
+source(file=paste0(wd,"/Code/Support.R"))
 
 # initialise count function
 countValues <- function(x){
