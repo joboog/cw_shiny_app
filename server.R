@@ -118,7 +118,7 @@ function(input, output){
     df3 <- df2_WQ() %>% spread(Parameter,value)
     
     # summary_tabl2(Dataframe, columns range, Factorname, col number of factor to summarize)
-    summary_table2(df3, (which(colnames(df3)=="SamplePoint")+1):length(colnames(df3)),
+    summary_table2(df3, (which(colnames(df3)=="dist_axial")+1):length(colnames(df3)),
                    "SamplePoint", which(colnames(df3)=="SamplePoint"))
   })
   
@@ -151,7 +151,7 @@ function(input, output){
   # filter 
   df_flow <- eventReactive(input$FLOW_goInput, {
     
-    if (is.null(input$FLOW_scaleInput) | is.null(input$FLOW_systemInput) | is.null(input$FLOW_sampletypeInput)) {
+    if (is.null(input$FLOW_scaleInput) | is.null(input$FLOW_systemInput) | is.null(input$FLOW_positionInput)) {
       return(NULL)
     }
     
@@ -164,7 +164,7 @@ function(input, output){
           RDate >= strptime(input$FLOW_dateInput[1], format="%Y-%m-%d"),
           RDate <= strptime(input$FLOW_dateInput[2], format="%Y-%m-%d"),
           System %in% input$FLOW_systemInput,
-          SampleType %in% input$FLOW_sampletypeInput
+          Position %in% input$FLOW_positionInput
         )
     }
     else if (input$FLOW_scaleInput == "Daily Summary") {
@@ -173,7 +173,7 @@ function(input, output){
           RDate >= strptime(input$FLOW_dateInput[1], format="%Y-%m-%d"),
           RDate <= strptime(input$FLOW_dateInput[2], format="%Y-%m-%d"),
           System %in% input$FLOW_systemInput,
-          SampleType %in% input$FLOW_sampletypeInput
+          Position %in% input$FLOW_positionInput
         )
     }
     else {
@@ -183,7 +183,7 @@ function(input, output){
           RDate >= strptime(input$FLOW_dateInput[1], format="%Y-%m-%d"),
           RDate <= strptime(input$FLOW_dateInput[2], format="%Y-%m-%d"),
           System %in% input$FLOW_systemInput,
-          SampleType %in% input$FLOW_sampletypeInput
+          Position %in% input$FLOW_positionInput
         )
       
     }
@@ -194,7 +194,7 @@ function(input, output){
     
   output$FLOW_Plot <- renderPlot({
     
-    if (is.null(input$FLOW_scaleInput) | is.null(input$FLOW_systemInput) | is.null(input$FLOW_sampletypeInput) | is.null(df_flow())) {
+    if (is.null(input$FLOW_scaleInput) | is.null(input$FLOW_systemInput) | is.null(input$FLOW_positionInput) | is.null(df_flow())) {
       return(NULL)
     }
     
@@ -204,12 +204,12 @@ function(input, output){
       facet_var_flow <- "System~." 
       # colorInp <- "System"
       
-      ts_plot_flow <- ggplot(data = na.omit(df_flow()), aes(x=RDate, y=value, color=SampleType)) +
+      ts_plot_flow <- ggplot(data = na.omit(df_flow()), aes(x=RDate, y=value, color=Position)) +
         geom_line()+geom_point() + facet_grid(facet_var_flow, scales = "free_y") + theme_bw() + labs(x="")
     }
     
     if (input$FLOW_facetInput == "In/Out") {
-      facet_var_flow <- ".~SampleType"
+      facet_var_flow <- ".~Position"
       #colorInp <- "SamplePoint"
       
       ts_plot_flow <- ggplot(data = na.omit(df_flow()), aes(x=RDate, y=value, color=System)) +
@@ -219,7 +219,7 @@ function(input, output){
     if (input$FLOW_facetInput == "no multiple Plots") {
       facet_var_flow <- ".~."
       #colorInp <- ""
-      ts_plot_flow <- ggplot(data = na.omit(df_flow()), aes(x=RDate, y=value, color=SampleType, shape=System)) +
+      ts_plot_flow <- ggplot(data = na.omit(df_flow()), aes(x=RDate, y=value, color=Position, shape=System)) +
         geom_line()+geom_point()+ theme_bw() + labs(x="")#+ labs(title="")
     }
     
@@ -249,7 +249,7 @@ function(input, output){
       return(NULL)
     }
     
-    df2 <- select(df_flow(), c(RDate, System, SampleType, value)) %>% spread(SampleType,value)
+    df2 <- select(df_flow(), c(RDate, System, Position, value)) %>% spread(Position,value)
     
     # summary_tabl2(Dataframe, columns range, Factorname, col number of factor to summarize)
     summary_table2(df2, (which(colnames(df2)=="System")+1):length(colnames(df2)),
@@ -323,6 +323,8 @@ function(input, output){
                               variable.name="Parameter")
       colnames(lweather_raw.df)[1] <- "Date"
       lweather_raw.df$Date <- as.POSIXct(strptime(lweather_raw.df$Date, format = "%d. %m. %Y %R"))
+      
+      rm(df1)
       
       #subset
       lweather_raw.df %>%

@@ -21,6 +21,9 @@ library(tidyr)
 
 wd <- getwd()
 
+data_dir <- "E:/ownCloud/LRB - DataProcess"
+
+
 # support scripts ===
 
 # load source script for summary table ===
@@ -36,10 +39,108 @@ countValues <- function(x){
 
 # set data dir
 if (dir.exists("Data_In")==TRUE) {
-  data_dir <- "/Data_In/"
+  data_dir <- "E:/ownCloud/LRB - DataProcess"
+  
+  #=== load data from ownCloud ====================================
+  load(file = paste0(data_dir, "/03 R_formats/LRB_WQ.rda"))
+  load(file = paste0(data_dir, "/03 R_formats/LRB_Weather.rda"))
+  load(file = paste0(data_dir, "/03 R_formats/LRB_Flow.rda"))
+  
+  
+  
+
+  # load samplepoint info
+  SPoint.dat <- read.csv(paste0(data_dir,"/02 Management_CSV/LRB_SamplePoint.csv"), header=TRUE, sep=";")
+  
+  # load system information 
+  systems_df <- read.csv(paste0(data_dir,"/02 Management_CSV/LRB_Systems.csv"), header=TRUE, sep=";")
+  
+  
+  
+  
+  
+  #=== preprocess wq data =========================================
+  
+  # add log_Ecoli
+  Raw.dat$log_Ecoli <- log10(Raw.dat$Ecoli)
+  
+  # order df
+  Raw.dat <- Raw.dat[order(Raw.dat$SamplePoint, Raw.dat$DateTime),]
+  
+  # add sample point informatoin
+  Raw.dat <- left_join(Raw.dat, SPoint.dat, by="SamplePoint")
+  #rm(SPoint.dat)
+  
+  # tranform to longformat
+  lRaw.dat <- Raw.dat %>% 
+                        gather(Parameter, value,
+                               T_lab:log_Ecoli
+                        ) %>%
+                            select(
+                              DateTime,SystemType, FlowDirection, System, SampleType, SamplePoint, dist_axial, Parameter, value
+                            )
+  # remove empty entries and duplicates
+  lRaw.dat <- na.omit(lRaw.dat)
+  lRaw.dat <- distinct(lRaw.dat)
+  rm(Raw.dat)
+  
+  
+  
+  
+  
+  #=== preprocess flow data =======================================
+  
+  lflow_hourly.df <- left_join(lflow_hourly.df, select(systems_df, c(SystemID, FlowDirection)),
+                                by=c("System"="SystemID")
+                      )
+  
+  lflow_hourly.df <- na.omit(lflow_hourly.df)
+  lflow_hourly.df <- distinct(lflow_hourly.df)
+  
+  
+  
+  
+  lflow_daily.df <- left_join(lflow_daily.df, select(systems_df, c(SystemID, FlowDirection)),
+                              by=c("System"="SystemID")
+                     )
+  lflow_daily.df <- na.omit(lflow_daily.df)
+  lflow_daily.df <- distinct(lflow_daily.df)
+  
+  
+  
+  
+  lflow_monthly.df <- left_join(lflow_monthly.df, select(systems_df, c(SystemID, FlowDirection)),
+                                by=c("System"="SystemID")
+                      )
+  
+  lflow_monthly.df <- na.omit(lflow_monthly.df)
+  lflow_monthly.df <- distinct(lflow_monthly.df)
+  
+  
+  
+  #=== preprocess weather data
+  
+  
+  rm(weather_daily.df, weather_monthly.df)
+  
+  lweather_daily.df$Date <- as.POSIXct(lweather_daily.df$Date, format="%Y-%m-%d")
+  
+  weather_raw.df$RDate_Xlt <- as.POSIXct(weather_raw.df$RDate_Xlt)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  rm(SPoint.dat)
+  
+  
 } else {
     data_dir <- "/Data_Example/"
-  }
+  
 
 # WQ data
 lRaw.dat <- read.csv(file=paste0(wd,data_dir, "WQ_Data.csv"), header = TRUE, sep = ";", dec = ".")
@@ -63,3 +164,4 @@ weather_raw.df$RDate_Xlt <- as.POSIXct(weather_raw.df$RDate_Xlt, format="%Y-%m-%
 lweather_daily.df$Date <- as.POSIXct(lweather_daily.df$Date, format="%Y-%m-%d")
 lweather_monthly.df$Date <- as.POSIXct(lweather_monthly.df$Date, format="%Y-%m-%d")
 
+}
