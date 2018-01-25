@@ -3,5 +3,7 @@
 .RData
 .Ruserdata
 
+.Rproj
+
 Data_In/**
 Download/**
