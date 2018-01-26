@@ -88,12 +88,12 @@ function(input, output){
     #== plot type ? ==
     
     if (input$WQ_plotypeInput=="Time series"){
+      
       #plot
       wq_plot <- ggplot(data = na.omit(df2_WQ()), aes(x=DateTime, y=value, color=SamplePoint)) +
         geom_line()+geom_point() + facet_grid(facet_var, scales = "free_y") + theme_bw() + labs(x="")
       
-      #plot
-      #wq_plot
+      
     } 
     
     
@@ -112,9 +112,10 @@ function(input, output){
                                 Parameter %in% input$WQ_parameterInput,
                                 System=="SEP"
                          )
+        # get system names
+        systems <- unique(df2_WQ()$System)
       
-      systems <- unique(df2_WQ()$System)
-      df2_WQ_temp2 <- df2_WQ()
+       df2_WQ_temp2 <- df2_WQ()
       
        for (i in 1:length(systems)){
          df2_WQ_temp2 <- bind_rows(df2_WQ_temp2, df2_WQ_temp1)
@@ -122,17 +123,19 @@ function(input, output){
       
        }
 
-      ##df2_WQ() <- df2_WQ()[which((df2_WQ()$SampleType=="In" | df2_WQ()$SampleType=="PoreWater" | df2_WQ()$SampleType=="Out")),]
+      # create df with mean and sd as plot source data
       df2_WQ_temp2 <- select(df2_WQ_temp2, -FlowDirection)
       df2_WQ_temp2 <- mySummaryDf(df2_WQ_temp2)
 
       # plot
-      wq_plot <- myGGPoreWQPlot(df2_WQ_temp2, "haha")
-      #wq_plot <- plot(seq(1,10,1), seq(2,20,2))
+      wq_plot <- myGGPoreWQPlot(df2_WQ_temp2, facet_var, "haha")
       
+      
+      # remove temp data
       rm(df2_WQ_temp1, df2_WQ_temp2)
     }
     
+    # print plot
     wq_plot
     
   })
