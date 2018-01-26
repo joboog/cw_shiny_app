@@ -182,7 +182,28 @@ summary_table3 <- function(df,col_n, ByFactor, ByFactorCol){
   # rename ByFactorColumn
   
 }
-# =================================================================================
 
+
+
+# ==== Pore water plots ===============================================================
+
+myGGPoreWQPlot <- function(df, plottitle){
+  plot <- ggplot(data = na.omit(df), aes(x=dist_axial, y=mean, color=System)) +
+    geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.1) +
+    geom_line() +geom_point() 
+  if (length(unique(df$Parameter))>1)
+  {
+    plot <- plot + facet_grid(Parameter~System, scales = "free_y") + labs(title=plottitle) 
+  }
+  return(plot)
+  #geom_smooth(aes(fg=System, group=Parameter), method="loess", span=1 , se=FALSE)
+}
+
+mySummaryDf <- function(df){
+  df <- ddply(na.omit(df), .(SamplePoint, System, Parameter, dist_axial),summarize,
+              mean= mean(value),
+              sd= sd(value))
+  return(df)
+}
 
 
