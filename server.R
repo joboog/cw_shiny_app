@@ -178,7 +178,8 @@ function(input, output){
       df2_WQ_temp <- mySummaryDf(df2_WQ_temp)
 
       # plot
-      wq_plot <- myGGPoreWQPlot(df2_WQ_temp, facet_var, "haha")
+      wq_plot <- myGGPoreWQPlot(df2_WQ_temp, facet_var, "Pore Water Profile")
+      wq_plot <- wq_plot + theme_bw() + labs(x="Fractional Flow Path Length", "")
       
       
       # remove temp data
