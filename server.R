@@ -62,6 +62,56 @@ function(input, output){
       )
   })
   
+  
+  
+  # now prepae data for plot type
+  df3_WQ <- reactive({
+    # in case of "Pore water plot": add SEP data for all systems as inflow to have it 
+    # in same color in porewater plot as not as SEP-OUT
+    # if plottype= "Time series" leave as is
+    if (is.null(input$WQ_plotypeInput) ) {
+      return(NULL)
+    }
+    
+    
+    if (input$WQ_plotypeInput=="Pore water plot"){
+      
+      
+       df2_WQ_temp1 <- lRaw.dat %>%
+                               filter(DateTime >= strptime(input$WQ_dateInput[1], format="%Y-%m-%d"),
+                                      DateTime <= strptime(input$WQ_dateInput[2], format="%Y-%m-%d"),
+                                      Parameter %in% input$WQ_parameterInput,
+                                      System=="SEP"
+                               )
+       # get system names
+       systems <- unique(df2_WQ()$System)
+      
+       df2_WQ_temp2 <- df2_WQ()
+      
+       for (i in 1:length(systems)){
+         df2_WQ_temp2 <- bind_rows(df2_WQ_temp2, df2_WQ_temp1)
+         df2_WQ_temp2$System[which(df2_WQ_temp2$System=="SEP")] <- systems[i]
+      
+       }
+
+      
+      rm(df2_WQ_temp1)
+      
+      return(df2_WQ_temp2)
+    }
+    
+    
+    
+    
+    if (input$WQ_plotypeInput=="Time series"){
+    
+      return(df2_WQ())
+    }
+    
+    
+  })
+  
+  
   # plot ===============================================
   output$WQ_tsPlot <- renderPlot({
     
@@ -90,7 +140,7 @@ function(input, output){
     if (input$WQ_plotypeInput=="Time series"){
       
       #plot
-      wq_plot <- ggplot(data = na.omit(df2_WQ()), aes(x=DateTime, y=value, color=SamplePoint)) +
+      wq_plot <- ggplot(data = na.omit(df3_WQ()), aes(x=DateTime, y=value, color=SamplePoint)) +
         geom_line()+geom_point() + facet_grid(facet_var, scales = "free_y") + theme_bw() + labs(x="")
       
       
@@ -105,34 +155,34 @@ function(input, output){
       #SubSetSampleType <- c("In","PoreWater" ,"Out")
 
 
-      # add SEP data for all systems as inlfow
-      df2_WQ_temp1 <- lRaw.dat %>%
-                         filter(DateTime >= strptime(input$WQ_dateInput[1], format="%Y-%m-%d"),
-                                DateTime <= strptime(input$WQ_dateInput[2], format="%Y-%m-%d"),
-                                Parameter %in% input$WQ_parameterInput,
-                                System=="SEP"
-                         )
-        # get system names
-        systems <- unique(df2_WQ()$System)
-      
-       df2_WQ_temp2 <- df2_WQ()
-      
-       for (i in 1:length(systems)){
-         df2_WQ_temp2 <- bind_rows(df2_WQ_temp2, df2_WQ_temp1)
-         df2_WQ_temp2$System[which(df2_WQ_temp2$System=="SEP")] <- systems[i]
-      
-       }
+      # # add SEP data for all systems as inlfow
+      # df2_WQ_temp1 <- lRaw.dat %>%
+      #                    filter(DateTime >= strptime(input$WQ_dateInput[1], format="%Y-%m-%d"),
+      #                           DateTime <= strptime(input$WQ_dateInput[2], format="%Y-%m-%d"),
+      #                           Parameter %in% input$WQ_parameterInput,
+      #                           System=="SEP"
+      #                    )
+      #   # get system names
+      #   systems <- unique(df2_WQ()$System)
+      # 
+      #  df2_WQ_temp2 <- df2_WQ()
+      # 
+      #  for (i in 1:length(systems)){
+      #    df2_WQ_temp2 <- bind_rows(df2_WQ_temp2, df2_WQ_temp1)
+      #    df2_WQ_temp2$System[which(df2_WQ_temp2$System=="SEP")] <- systems[i]
+      # 
+      #  }
 
       # create df with mean and sd as plot source data
-      df2_WQ_temp2 <- select(df2_WQ_temp2, -FlowDirection)
-      df2_WQ_temp2 <- mySummaryDf(df2_WQ_temp2)
+      df2_WQ_temp <- select(df3_WQ(), -FlowDirection)
+      df2_WQ_temp <- mySummaryDf(df2_WQ_temp)
 
       # plot
-      wq_plot <- myGGPoreWQPlot(df2_WQ_temp2, facet_var, "haha")
+      wq_plot <- myGGPoreWQPlot(df2_WQ_temp, facet_var, "haha")
       
       
       # remove temp data
-      rm(df2_WQ_temp1, df2_WQ_temp2)
+      rm(df2_WQ_temp)
     }
     
     # print plot
@@ -159,20 +209,25 @@ function(input, output){
   
   
   # output of summarytable =====================================
-  df2_summary_WQ <- reactive({
+  df3_summary_WQ <- reactive({
     
-    if (is.null(df2_WQ())) {
+    if (is.null(df3_WQ())) {
       return(NULL)
     }
     
-    df3 <- df2_WQ() %>% spread(Parameter,value)
+    df3 <- df3_WQ()
+    df3$System[which(df3$SamplePoint=="SEP-OUT")] <- "SEP"
+    
+    df3 <- df3 %>% distinct() %>% spread(Parameter,value)
+    
+    
     
     # summary_tabl2(Dataframe, columns range, Factorname, col number of factor to summarize)
     summary_table2(df3, (which(colnames(df3)=="dist_axial")+1):length(colnames(df3)),
                    "SamplePoint", which(colnames(df3)=="SamplePoint"))
   })
   
-  output$WQ_summarytable <- renderTable(df2_summary_WQ())
+  output$WQ_summarytable <- renderTable(df3_summary_WQ())
   
   # output for summary table download
   output$WQ_downsummarytable<- downloadHandler(
@@ -180,7 +235,7 @@ function(input, output){
       paste("WQ_SummaryTable", "csv", sep = ".")
     },
     content = function(file){
-      write.table(df2_summary_WQ(), file, dec = ".", sep = ";", row.names = FALSE, na = "NA", quote = FALSE)
+      write.table(df3_summary_WQ(), file, dec = ".", sep = ";", row.names = FALSE, na = "NA", quote = FALSE)
     }
   ) 
   
@@ -190,7 +245,13 @@ function(input, output){
       paste("WQ_Data", "csv", sep = ".")
     },
     content = function(file){
-      write.table(df2_WQ(), file, dec = ".", sep = ";", row.names = FALSE, na = "NA", quote = FALSE)
+      
+      # adapt data
+      df3 <- df3_WQ()
+      df3$System[which(df3$SamplePoint=="SEP-OUT")] <- "SEP"
+      df3 <-  distinct(df3)
+      
+      write.table(df3, file, dec = ".", sep = ";", row.names = FALSE, na = "NA", quote = FALSE)
     }
   ) 
   
