@@ -24,7 +24,8 @@ function(input, output){
   })
   
   
-  # filter lRaw.dat data
+  # define wq data
+  # first, filter for systems and time frame
   df_WQ <- eventReactive(input$WQ_goInput, {
     
     if (is.null(input$WQ_systemInput)) {
@@ -39,7 +40,7 @@ function(input, output){
       )
   })
   
-  # now filter data for sample point
+  # now filter data for available sample point
   df1_WQ <- reactive({
     if (is.null(input$WQ_samplepointInput) | is.null(df_WQ()) ) {
       return(NULL)
@@ -83,13 +84,59 @@ function(input, output){
       #colorInp <- ""
     }
     
-    #plot
-    ts_plot_wq <- ggplot(data = na.omit(df2_WQ()), aes(x=DateTime, y=value, color=SamplePoint)) +
-      geom_line()+geom_point() + facet_grid(facet_var, scales = "free_y") + theme_bw() + labs(x="")
     
-    #plot
-    ts_plot_wq
+    #== plot type ? ==
+    
+    if (input$WQ_plotypeInput=="Time series"){
+      #plot
+      wq_plot <- ggplot(data = na.omit(df2_WQ()), aes(x=DateTime, y=value, color=SamplePoint)) +
+        geom_line()+geom_point() + facet_grid(facet_var, scales = "free_y") + theme_bw() + labs(x="")
+      
+      #plot
+      #wq_plot
+    } 
+    
+    
+    
+    
+    if (input$WQ_plotypeInput=="Pore water plot"){
+
+      # define samples to consider
+      #SubSetSampleType <- c("In","PoreWater" ,"Out")
+
+
+      # add SEP data for all systems as inlfow
+      df2_WQ_temp1 <- lRaw.dat %>%
+                         filter(DateTime >= strptime(input$WQ_dateInput[1], format="%Y-%m-%d"),
+                                DateTime <= strptime(input$WQ_dateInput[2], format="%Y-%m-%d"),
+                                Parameter %in% input$WQ_parameterInput,
+                                System=="SEP"
+                         )
+      
+      systems <- unique(df2_WQ()$System)
+      df2_WQ_temp2 <- df2_WQ()
+      
+       for (i in 1:length(systems)){
+         df2_WQ_temp2 <- bind_rows(df2_WQ_temp2, df2_WQ_temp1)
+         df2_WQ_temp2$System[which(df2_WQ_temp2$System=="SEP")] <- systems[i]
+      
+       }
+
+      ##df2_WQ() <- df2_WQ()[which((df2_WQ()$SampleType=="In" | df2_WQ()$SampleType=="PoreWater" | df2_WQ()$SampleType=="Out")),]
+      df2_WQ_temp2 <- select(df2_WQ_temp2, -FlowDirection)
+      df2_WQ_temp2 <- mySummaryDf(df2_WQ_temp2)
+
+      # plot
+      wq_plot <- myGGPoreWQPlot(df2_WQ_temp2, "haha")
+      #wq_plot <- plot(seq(1,10,1), seq(2,20,2))
+      
+      rm(df2_WQ_temp1, df2_WQ_temp2)
+    }
+    
+    wq_plot
+    
   })
+  
   
   
   # create an output for downloading the plot
