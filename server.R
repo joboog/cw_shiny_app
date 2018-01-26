@@ -113,84 +113,100 @@ function(input, output){
   
   
   # plot ===============================================
-  output$WQ_tsPlot <- renderPlot({
-    
+  output$ui <- renderUI({
     if (is.null(input$WQ_samplepointInput) | is.null(input$WQ_systemInput) | is.null(input$WQ_parameterInput)) {
       return(NULL)
     }
+  
     
-    # create faceting if wanted
+    # define facets and corresponding plot size
     # dunno why case_when() is not working
     if (input$WQ_facetInput == "System") {
       facet_var <- "Parameter~System" 
       # colorInp <- "System"
+      nx <- length(unique(df3_WQ()$System))
     }
     if (input$WQ_facetInput == "Sampling Point") {
       facet_var <- "Parameter~SamplePoint"
       #colorInp <- "SamplePoint"
+      nx <- length(unique(df3_WQ()$SamplePoint))
     }
     if (input$WQ_facetInput == "no multiple Plots") {
       facet_var <- "Parameter~."
       #colorInp <- ""
+      nx <- 2
     }
     
-    
-    #== plot type ? ==
-    
-    if (input$WQ_plotypeInput=="Time series"){
-      
-      #plot
-      wq_plot <- ggplot(data = na.omit(df3_WQ()), aes(x=DateTime, y=value, color=SamplePoint)) +
-        geom_line()+geom_point() + facet_grid(facet_var, scales = "free_y") + theme_bw() + labs(x="")
-      
-      
-    } 
-    
-    
-    
-    
-    if (input$WQ_plotypeInput=="Pore water plot"){
-
-      # define samples to consider
-      #SubSetSampleType <- c("In","PoreWater" ,"Out")
-
-
-      # # add SEP data for all systems as inlfow
-      # df2_WQ_temp1 <- lRaw.dat %>%
-      #                    filter(DateTime >= strptime(input$WQ_dateInput[1], format="%Y-%m-%d"),
-      #                           DateTime <= strptime(input$WQ_dateInput[2], format="%Y-%m-%d"),
-      #                           Parameter %in% input$WQ_parameterInput,
-      #                           System=="SEP"
-      #                    )
-      #   # get system names
-      #   systems <- unique(df2_WQ()$System)
-      # 
-      #  df2_WQ_temp2 <- df2_WQ()
-      # 
-      #  for (i in 1:length(systems)){
-      #    df2_WQ_temp2 <- bind_rows(df2_WQ_temp2, df2_WQ_temp1)
-      #    df2_WQ_temp2$System[which(df2_WQ_temp2$System=="SEP")] <- systems[i]
-      # 
-      #  }
-
-      # create df with mean and sd as plot source data
-      df2_WQ_temp <- select(df3_WQ(), -FlowDirection)
-      df2_WQ_temp <- mySummaryDf(df2_WQ_temp)
-
-      # plot
-      wq_plot <- myGGPoreWQPlot(df2_WQ_temp, facet_var, "Pore Water Profile")
-      wq_plot <- wq_plot + theme_bw() + labs(x="Fractional Flow Path Length", "")
-      
-      
-      # remove temp data
-      rm(df2_WQ_temp)
-    }
-    
-    # print plot
-    wq_plot
-    
-  })
   
+    # define vertical plot size
+    ny <- length(unique(df3_WQ()$Parameter))
+    
+    
+    
+    output$WQ_tsPlot <- renderPlot({
+      
+     
+      #== plot type ? ==
+      
+      if (input$WQ_plotypeInput=="Time series"){
+        
+        #plot
+        wq_plot <- ggplot(data = na.omit(df3_WQ()), aes(x=DateTime, y=value, color=SamplePoint)) +
+          geom_line()+geom_point() + facet_grid(facet_var, scales = "free_y") + theme_bw() + labs(x="")
+        
+        
+      } 
+      
+      
+      
+      
+      if (input$WQ_plotypeInput=="Pore water plot"){
+  
+        # define samples to consider
+        #SubSetSampleType <- c("In","PoreWater" ,"Out")
+  
+  
+        # # add SEP data for all systems as inlfow
+        # df2_WQ_temp1 <- lRaw.dat %>%
+        #                    filter(DateTime >= strptime(input$WQ_dateInput[1], format="%Y-%m-%d"),
+        #                           DateTime <= strptime(input$WQ_dateInput[2], format="%Y-%m-%d"),
+        #                           Parameter %in% input$WQ_parameterInput,
+        #                           System=="SEP"
+        #                    )
+        #   # get system names
+        #   systems <- unique(df2_WQ()$System)
+        # 
+        #  df2_WQ_temp2 <- df2_WQ()
+        # 
+        #  for (i in 1:length(systems)){
+        #    df2_WQ_temp2 <- bind_rows(df2_WQ_temp2, df2_WQ_temp1)
+        #    df2_WQ_temp2$System[which(df2_WQ_temp2$System=="SEP")] <- systems[i]
+        # 
+        #  }
+  
+        # create df with mean and sd as plot source data
+        df2_WQ_temp <- select(df3_WQ(), -FlowDirection)
+        df2_WQ_temp <- mySummaryDf(df2_WQ_temp)
+  
+        # plot
+        wq_plot <- myGGPoreWQPlot(df2_WQ_temp, facet_var, "Pore Water Profile")
+        wq_plot <- wq_plot + theme_bw() + labs(x="Fractional Flow Path Length", "")
+        
+        
+        # remove temp data
+        rm(df2_WQ_temp)
+      }
+      
+      # print plot
+      wq_plot
+      
+      
+    })
+    
+    # define plot for ouput$ui
+    plotOutput("WQ_tsPlot", width = 200*nx, height = 200*ny)
+    
+  })  
   
   
   # create an output for downloading the plot
