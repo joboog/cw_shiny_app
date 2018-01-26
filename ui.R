@@ -20,6 +20,12 @@ navbarPage("LRB Research Data",
                          actionButton(inputId = "WQ_goInput", label = "Update"),
                          
                          uiOutput("WQ_samplepointOutput"),
+                         
+                         radioButtons(inputId = "WQ_plotypeInput",
+                                      label = "Type of Plot",
+                                      choices = c("Time series","Pore water plot"),
+                                      selected = "Time series"),
+                         
                          radioButtons(inputId = "WQ_facetInput",
                                       label = "Multiple Plots.",
                                       choices = c("no multiple Plots","System", "Sampling Point"),
