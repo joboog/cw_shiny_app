@@ -39,7 +39,8 @@ countValues <- function(x){
 
 # set data dir
 if (dir.exists("Data_In")==TRUE) {
-  data_dir <- "E:/ownCloud/LRB - DataProcess"
+  data_dir <- "/home/shinyadmin/owncloud/LRB_DataProcess"
+
   
   #=== load data from ownCloud ====================================
   load(file = paste0(data_dir, "/03 R_formats/LRB_WQ.rda"))
