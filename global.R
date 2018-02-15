@@ -148,9 +148,9 @@ lRaw.dat <- read.csv(file=paste0(wd,data_dir, "WQ_Data.csv"), header = TRUE, sep
 lRaw.dat$DateTime <- as.POSIXct(strptime(lRaw.dat$DateTime, format = "%Y-%m-%d %R"))
 
 # Flow data
-lflow_hourly.df <- read.csv(file=paste0(wd, data_dir, "lFLOW_Hourly.csv"), header = TRUE, sep = ";", dec = ".")
-lflow_daily.df <- read.csv(file=paste0(wd, data_dir, "lFLOW_Daily.csv"), header = TRUE, sep = ";", dec = ".")
-lflow_monthly.df <- read.csv(file=paste0(wd, data_dir, "lFLOW_Monthly.csv"), header = TRUE, sep = ";", dec = ".")
+lflow_hourly.df <- read.csv(file=paste0(wd, data_dir, "lFlow_Hourly.csv"), header = TRUE, sep = ";", dec = ".")
+lflow_daily.df <- read.csv(file=paste0(wd, data_dir, "lFlow_Daily.csv"), header = TRUE, sep = ";", dec = ".")
+lflow_monthly.df <- read.csv(file=paste0(wd, data_dir, "lFlow_Monthly.csv"), header = TRUE, sep = ";", dec = ".")
 # tranform Rdate to POSct
 lflow_hourly.df$RDate <- as.POSIXct(lflow_hourly.df$RDate, format="%Y-%m-%d %R")
 lflow_daily.df$RDate <- as.POSIXct(lflow_daily.df$RDate, format="%Y-%m-%d")
