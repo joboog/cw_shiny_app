@@ -91,8 +91,8 @@ if (dir.exists("Data_In")==TRUE) {
   
   #=== preprocess flow data =======================================
   
-  lflow_hourly.df <- left_join(lflow_hourly.df, select(systems_df, c(SystemID, FlowDirection)),
-                                by=c("System"="SystemID")
+  lflow_hourly.df <- left_join(lflow_hourly.df, select(systems_df, c(System, FlowDirection)),
+                                by=c("System"="System")
                       )
   
   lflow_hourly.df <- na.omit(lflow_hourly.df)
@@ -101,8 +101,8 @@ if (dir.exists("Data_In")==TRUE) {
   
   
   
-  lflow_daily.df <- left_join(lflow_daily.df, select(systems_df, c(SystemID, FlowDirection)),
-                              by=c("System"="SystemID")
+  lflow_daily.df <- left_join(lflow_daily.df, select(systems_df, c(System, FlowDirection)),
+                              by=c("System"="System")
                      )
   lflow_daily.df <- na.omit(lflow_daily.df)
   lflow_daily.df <- distinct(lflow_daily.df)
@@ -110,8 +110,8 @@ if (dir.exists("Data_In")==TRUE) {
   
   
   
-  lflow_monthly.df <- left_join(lflow_monthly.df, select(systems_df, c(SystemID, FlowDirection)),
-                                by=c("System"="SystemID")
+  lflow_monthly.df <- left_join(lflow_monthly.df, select(systems_df, c(System, FlowDirection)),
+                                by=c("System"="System")
                       )
   
   lflow_monthly.df <- na.omit(lflow_monthly.df)
