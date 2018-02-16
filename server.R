@@ -244,7 +244,9 @@ function(input, output){
                    "SamplePoint", which(colnames(df3)=="SamplePoint"))
   })
   
-  output$WQ_summarytable <- renderTable(df3_summary_WQ())
+  output$WQ_summarytable <- renderTable(df3_summary_WQ(),
+                                        na=""    
+                            )
   
   # output for summary table download
   output$WQ_downsummarytable<- downloadHandler(
@@ -386,7 +388,8 @@ function(input, output){
   
   # summary table output
   output$FLOW_summarytable <- renderTable(
-    df_summary_flow()
+    df_summary_flow(),
+    na=""
   )
   
   # output for summary table download
@@ -528,7 +531,8 @@ function(input, output){
   
   # summary table output
   output$WEATHER_summarytable <- renderTable(
-    df_summary_weather()
+    df_summary_weather(),
+    na=""
   )
   
   # output for summary table download
