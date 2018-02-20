@@ -1,5 +1,0 @@
-LRB App
-
-- increase speed!!!!!!!!
-	- source data import for weather and flow data out!!!
-	  - use data from ownCloud/LRB - DataProcess
