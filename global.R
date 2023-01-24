@@ -3,6 +3,14 @@
 # Visualization, Summary stats, downloads
 
 
+# Note:
+# This code imports the input data from a local directory /Data_In/ that has to be
+# present in the working directory.
+# 
+# All the code under wd/Code/ besides Support.R, is not used in this version.
+# It would have ot be used when unprepared raw data from data source files will be used.
+
+
 # preambel =================================================================
 library(shiny)
 library(ggplot2)
@@ -13,10 +21,13 @@ library(tidyr)
 
 wd <- getwd()
 
+data_dir <- "E:/ownCloud/LRB - DataProcess"
+
+
 # support scripts ===
 
 # load source script for summary table ===
-source(file="E:/UFZ/10 Programs/R- Project/R_Work_def/Support.R")
+source(file=paste0(wd,"/Code/Support.R"))
 
 # initialise count function
 countValues <- function(x){
@@ -24,62 +35,134 @@ countValues <- function(x){
 }
 
 
-# WQ Data ===================================================================
+# import data from local wd/Data_In/...     ====================================================
 
-## Import data
-source("E:/UFZ/06 LRB_Data/01 R_Dir/Code/LRB_ImportData_classic WQ_Conc.R")
+# set data dir
+if (dir.exists("Data_In")==TRUE) {
+  data_dir <- "/home/shinyadmin/owncloud/LRB_DataProcess"
 
-## Pre-processing ===
+  
+  #=== load data from ownCloud ====================================
+  load(file = paste0(data_dir, "/03 R_formats/LRB_WQ.rda"))
+  load(file = paste0(data_dir, "/03 R_formats/LRB_Weather.rda"))
+  load(file = paste0(data_dir, "/03 R_formats/LRB_Flow.rda"))
+  
+  
+  
 
-# load preprocessing script
-source("E:/UFZ/06 LRB_Data/01 R_Dir/Code/LRB_Preprocessing_classic WQ_Conc.R")
-rm(BDL.dat)
+  # load samplepoint info
+  SPoint.dat <- read.csv(paste0(data_dir,"/02 Management_CSV/LRB_SamplePoint.csv"), header=TRUE, sep=";")
+  
+  # load system information 
+  systems_df <- read.csv(paste0(data_dir,"/02 Management_CSV/LRB_Systems.csv"), header=TRUE, sep=";")
+  
+  
+  
+  
+  
+  #=== preprocess wq data =========================================
+  
+  # add log_Ecoli
+  Raw.dat$log_Ecoli <- log10(Raw.dat$Ecoli)
+  
+  # order df
+  Raw.dat <- Raw.dat[order(Raw.dat$SamplePoint, Raw.dat$DateTime),]
+  
+  # add sample point informatoin
+  Raw.dat <- left_join(Raw.dat, SPoint.dat, by="SamplePoint")
+  #rm(SPoint.dat)
+  
+  # tranform to longformat
+  lRaw.dat <- Raw.dat %>% 
+                        gather(Parameter, value,
+                               T_lab:log_Ecoli
+                        ) %>%
+                            select(
+                              DateTime,SystemType, FlowDirection, System, SampleType, SamplePoint, dist_axial, Parameter, value
+                            )
+  # remove empty entries and duplicates
+  lRaw.dat <- na.omit(lRaw.dat)
+  lRaw.dat <- distinct(lRaw.dat)
+  rm(Raw.dat)
+  
+  
+  
+  
+  
+  #=== preprocess flow data =======================================
+  
+  lflow_hourly.df <- left_join(lflow_hourly.df, select(systems_df, c(System, FlowDirection)),
+                                by=c("System"="System")
+                      )
+  
+  lflow_hourly.df <- na.omit(lflow_hourly.df)
+  lflow_hourly.df <- distinct(lflow_hourly.df)
+  
+  
+  
+  
+  lflow_daily.df <- left_join(lflow_daily.df, select(systems_df, c(System, FlowDirection)),
+                              by=c("System"="System")
+                     )
+  lflow_daily.df <- na.omit(lflow_daily.df)
+  lflow_daily.df <- distinct(lflow_daily.df)
+  
+  
+  
+  
+  lflow_monthly.df <- left_join(lflow_monthly.df, select(systems_df, c(System, FlowDirection)),
+                                by=c("System"="System")
+                      )
+  
+  lflow_monthly.df <- na.omit(lflow_monthly.df)
+  lflow_monthly.df <- distinct(lflow_monthly.df)
+  
+  
+  
+  #=== preprocess weather data
+  
+  
+  rm(weather_daily.df, weather_monthly.df)
+  
+  lweather_daily.df$Date <- as.POSIXct(lweather_daily.df$Date, format="%Y-%m-%d")
+  
+  weather_raw.df$RDate_Xlt <- as.POSIXct(weather_raw.df$RDate_Xlt)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  rm(SPoint.dat)
+  
+  
+} else {
+    data_dir <- "/Data_Example/"
+  
 
-# add log_Ecoli
-Raw.dat$log_Ecoli <- log10(Raw.dat$Ecoli)
+# WQ data
+lRaw.dat <- read.csv(file=paste0(wd,data_dir, "WQ_Data.csv"), header = TRUE, sep = ";", dec = ".")
+lRaw.dat$DateTime <- as.POSIXct(strptime(lRaw.dat$DateTime, format = "%Y-%m-%d %R"))
 
-# remove complete NA rows
-Raw.dat <- Raw.dat[-which((is.na(Raw.dat$T_lab)) & (is.na(Raw.dat$T_field)) & (is.na(Raw.dat$EC)) & (is.na(Raw.dat$DO)) & (is.na(Raw.dat$ORP)) & (is.na(Raw.dat$pH)) & (is.na(Raw.dat$CBOD)) & (is.na(Raw.dat$TOC)) & (is.na(Raw.dat$TN)) & (is.na(Raw.dat$DOC)) & (is.na(Raw.dat$DN)) & (is.na(Raw.dat$IC)) & (is.na(Raw.dat$DIC)) & (is.na(Raw.dat$NH4N)) & (is.na(Raw.dat$NO3N)) & (is.na(Raw.dat$NO2N)) & (is.na(Raw.dat$TSS)) & (is.na(Raw.dat$Ecoli)) & (is.na(Raw.dat$log_Ecoli))),]
+# Flow data
+lflow_hourly.df <- read.csv(file=paste0(wd, data_dir, "lFlow_Hourly.csv"), header = TRUE, sep = ";", dec = ".")
+lflow_daily.df <- read.csv(file=paste0(wd, data_dir, "lFlow_Daily.csv"), header = TRUE, sep = ";", dec = ".")
+lflow_monthly.df <- read.csv(file=paste0(wd, data_dir, "lFlow_Monthly.csv"), header = TRUE, sep = ";", dec = ".")
+# tranform Rdate to POSct
+lflow_hourly.df$RDate <- as.POSIXct(lflow_hourly.df$RDate, format="%Y-%m-%d %R")
+lflow_daily.df$RDate <- as.POSIXct(lflow_daily.df$RDate, format="%Y-%m-%d")
+lflow_monthly.df$RDate <- as.POSIXct(lflow_monthly.df$RDate, format="%Y-%m-%d")
 
+# weather data
+weather_raw.df <- read.csv(file=paste0(wd,data_dir, "Weather_10min.csv"), header = TRUE, sep = ";", dec = ".")
+lweather_daily.df <- read.csv(file=paste0(wd, data_dir, "lWeather_Daily.csv"), header = TRUE, sep = ";", dec = ".")
+lweather_monthly.df <- read.csv(file=paste0(wd, data_dir, "lWeather_Monthly.csv"), header = TRUE, sep = ";", dec = ".")
 
-### Convert WQ data to long format ===
+weather_raw.df$RDate_Xlt <- as.POSIXct(weather_raw.df$RDate_Xlt, format="%Y-%m-%d %R")
+lweather_daily.df$Date <- as.POSIXct(lweather_daily.df$Date, format="%Y-%m-%d")
+lweather_monthly.df$Date <- as.POSIXct(lweather_monthly.df$Date, format="%Y-%m-%d")
 
-# seperate in data for field parameters, carbon, nitrogen, others
-# set variable names for factors
-factors.par <- c("DateTime",  "SystemType", "FlowDirection","System", "SampleType","SamplePoint")
-
-# set variables for Parameters groups
-parameters <- colnames(Raw.dat)[-c(1:9)]
-
-# convert data
-lRaw.dat <- melt(data=Raw.dat, id.vars=factors.par, 
-                 measure.vars= parameters, 
-                 variable.name="Parameter")
-
-# remove unnecessary stuff
-rm(SPoint.dat, DL,factors.par, m,parameters)
-
-
-# Flow Data ================================================================
-
-# load source script for summary table
-source(file="E:/UFZ/10 Programs/R- Project/R_Work_def/Support.R")
-
-source(file = paste0(wd,"/Code/R_Flow.R"))
-
-# remove unnecessary data
-rm(df, flow_daily.df, flow_hourly.df, flow_monthly.df, help.df, weather_daily.df, 
-   i,j,k)
-
-# convert all Xlt time formats to Ct
-lflow_daily.df$RDate <- as.POSIXct(lflow_daily.df$RDate)
-lflow_monthly.df$RDate <- as.POSIXct(lflow_monthly.df$RDate)
-
-
-
-# Weather Data ==============================================================
-wd <- getwd()
-
-source(file =paste0(wd, "/Code/R_Weather.R"))
-rm(weather_daily.df, weather_monthly.df)
-weather_raw.df$RDate_Xlt <- as.POSIXct(weather_raw.df$RDate_Xlt)
+}
