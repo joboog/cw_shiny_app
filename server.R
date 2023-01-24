@@ -238,7 +238,6 @@ function(input, output){
     df3 <- df3 %>% distinct() %>% spread(Parameter,value)
     
     
-    
     # summary_tabl2(Dataframe, columns range, Factorname, col number of factor to summarize)
     summary_table2(df3, (which(colnames(df3)=="dist_axial")+1):length(colnames(df3)),
                    "SamplePoint", which(colnames(df3)=="SamplePoint"))
@@ -522,7 +521,7 @@ function(input, output){
                digits=1, nsmall=1
         ),
         format((summarise_all(select(df2, -Date), funs(countValues))[1,]),
-               digits=0, nsmall = 1
+                nsmall = 1
         )
       )
     )

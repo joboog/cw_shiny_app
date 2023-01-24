@@ -3,7 +3,7 @@ summary_table2 <- function(df,col_n, ByFactor, ByFactorCol){
   # col_n: a numeric vector specifying the column numbers fo the numeric variables to subset the data frame
   # ByfactorName: Name of the Factor by which to summarize
   # ByFactorCol: Column number of the summarizing Factor
-  
+
   # Own summary table using 
   #
   library(dplyr)
@@ -16,7 +16,7 @@ summary_table2 <- function(df,col_n, ByFactor, ByFactorCol){
   # ByFactor <- "SamplePoint"
   # ByFactorCol <- 1
   # col_n <- 4:length(colnames(lRaw_new2))
-  
+ 
   #  compute summary stats =============================================================
   df <- df[,c(ByFactorCol,col_n)]
   # compute means values
@@ -24,7 +24,7 @@ summary_table2 <- function(df,col_n, ByFactor, ByFactorCol){
   means <- cbind(means[,1], round(select(means, -1), digits = 1))
   means <- format(means, digits = 1, nsmall = 1)
   colnames(means) <- c(ByFactor, colnames(select(means, -1)))
-  
+
   # compute standard deviations
   sds <- df %>% group_by_(ByFactor) %>% summarise_all(funs(sd), na.rm=TRUE)
   sds <- cbind(sds[,1], round(select(sds, -1), digits = 1))
@@ -32,10 +32,10 @@ summary_table2 <- function(df,col_n, ByFactor, ByFactorCol){
   colnames(sds) <- c(ByFactor, colnames(select(sds, -1)))
   # set value of first columnof sds to NA, just to make the table look better in the end
   sds[,1] <- NA
-  
+
   # count non NA values
   counts <- df %>% group_by_(ByFactor) %>% summarise_all(funs(countValues))
-  counts <- format(as.data.frame(counts), digits = 0, nsmall = 0)
+  counts <- format(as.data.frame(counts), nsmall = 0)
   colnames(counts) <- c(ByFactor, colnames(select(counts, -1)))
   counts[,1] <- NA
   
@@ -46,7 +46,7 @@ summary_table2 <- function(df,col_n, ByFactor, ByFactorCol){
   
   # create the data frame
   df1 <- rbind(means[1,], sds[1,], counts[1,])
-  
+
   # if more than one SamplePoint, combine mean values, standard deviations, counts using a loop
   if (length(means[,1])>1) {
     for (i in 2:length(means[,1])){
@@ -60,7 +60,7 @@ summary_table2 <- function(df,col_n, ByFactor, ByFactorCol){
   # reorder df1, put parameters into 2nd column
   df1 <- df1[,c(1,length(df1),3:length(df1)-1)]
   # rename ByFactorColumn
-  
+
 }
 
 
