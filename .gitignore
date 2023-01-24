@@ -2,8 +2,11 @@
 .Rhistory
 .RData
 .Ruserdata
+.Rprofile
 
 *.Rproj
 
 Data_In/**
 Download/**
+packrat/lib*/
+packrat/src/*
