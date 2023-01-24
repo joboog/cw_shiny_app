@@ -1,4 +1,4 @@
-navbarPage("LRB Research Data",
+navbarPage("CW Research Data App",
            
  # WQ Data ==========================================
  tabPanel("WQ",
